@@ -51,11 +51,14 @@ class Window(Frame):
     
 
     def get_username(self):    
-        self.name = simpledialog.askstring("Username","Enter Username").encode()
-      
+        var = simpledialog.askstring("Username","Enter Username")
+        if var is None: return
+        self.name = var.encode()
 
     def send_file(self):
-        path = filedialog.askopenfilename().encode()
+        path = filedialog.askopenfilename()
+        if path == "": return
+        path = path.encode()
         
         if not self.has_socket: self.display(data="Establish a connection before sending a file\n",user="[INFO]");return
         if not self.is_connected: self.display(data="Establish a connection before sending a file\n",user="[INFO]");return
@@ -69,7 +72,7 @@ class Window(Frame):
 
     def on_file_receive(self,**kwargs):
         self.file_queue.put({"data":kwargs["data"],"file_extension":kwargs["file_extension"],"file_name":kwargs["file_name"]})
-        self.display(data=f"new file received:{kwargs['file_name']}.{kwargs['file_extension']}, {kwargs['file_size']}bytes\n")
+        self.display(data=f"new file received:{kwargs['file_name']}.{kwargs['file_extension']}, {kwargs['file_size']}bytes\n",user="[INFO]")
     
     def get_file(self):
         top= Toplevel(self.master)
@@ -92,32 +95,37 @@ class Window(Frame):
             files.update({file["file_name"]:file})
 
         available_files = {}
-        unused_file_list = []
+       
     
         def get():
             path = filedialog.askdirectory()
+            if path == "": put_all_back();return
             top.destroy()
+            if not True in available_files.values(): put_all_back();return
 
             for name,var in available_files.items():
                 if var:
                     file = files[name]
                     info = get_file(data=file["data"],file_extension=file["file_extension"],savepath=path,file_name=file["file_name"])
                     self.display(data=f"Datei {file['file_name']} in {info} gespeichert.\n",user="[INFO]")
-
-                else:
-                    unused_file_list.append(file[name])
-            
-            for unused_file in unused_file_list:
-                self.file_queue.put(unused_file)
-                
+                else:  
+                    self.file_queue.put(files[name])
         
+        def put_all_back():
+            print("putallback")
+            for file in files.values():
+                self.file_queue.put(file)
+            top.destroy()
+
+        
+        top.protocol("WM_DELETE_WINDOW", put_all_back)
         for file in files.values():
             bvar = BooleanVar()
             f = f'{file["file_name"]}.{file["file_extension"]}'
-            Checkbutton(top, text=f,variable = bvar, onvalue=True, offvalue=False,anchor="w").pack()
+            Checkbutton(top, text=f,variable = bvar, onvalue=True, offvalue=False,anchor="w").pack(anchor="w")
             available_files.update({file["file_name"]:bvar})
         button = Button(top,text="download",command=get)
-        button.pack()
+        button.pack()      
 
     def on_connection_close(self):
         self.display(data="connection closed\n",user="[INFO]")
