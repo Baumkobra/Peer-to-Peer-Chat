@@ -93,8 +93,6 @@ class Sock:
                 if is_last_buffer(mes["buffer"]):
                     self.process_mes(debuf_dict[mes["id"]])
                 
-                
-
         localThread = Thread(target=do,name="receive")
         localThread.start()
         
@@ -132,7 +130,7 @@ class Sock:
 
             elif message_type == FILEID:
                 if len(debuf_data) == message_file_size:
-                    self.onfile_receive(data=debuf_data,file_extension=message_file_extension,file_name=message_file_name)
+                    self.onfile_receive(data=debuf_data,file_extension=message_file_extension,file_name=message_file_name,file_size=message_file_size)
                     #get_file(debuf_data,message_file_extension)
                 else:
                     print("File missing data, try sending again")

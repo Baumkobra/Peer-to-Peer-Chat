@@ -16,14 +16,12 @@ class Server(Sock):
     def __init__(self,host,port) -> None:
         super().__init__(host,port)
         self.sock : socket
-        
 
         localThread = Thread(target=self.listen,name="server_listen")
         localThread.start()
         
 
     def listen(self):
-      
         self.socket = socket(AF_INET,SOCK_STREAM)
         self.socket.bind((self.host,self.port))
         self.socket.listen()
@@ -46,8 +44,6 @@ class Server(Sock):
 
     def output(self,mes):
         print(mes)
-
-
 
 
 if __name__ == "__main__":
