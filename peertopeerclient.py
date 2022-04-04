@@ -48,7 +48,7 @@ if __name__ == "__main__":
     while True:
         inp = input("enter:")
         s.format_send(inp.encode())
-        #s.file_send(r"C:\Users\mariu\OneDrive - BG Perchtoldsdorf\Schule\helloworld\socktac\newfile2.jpg")
+      
         
 
 
