@@ -42,9 +42,6 @@ class Server(Sock):
         self.socket.close()
         self.onconnection_close()
 
-    def output(self,mes):
-        print(mes)
-
 
 if __name__ == "__main__":
     s = Server()
