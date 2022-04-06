@@ -23,6 +23,7 @@ class Client(Sock):
         localThread =Thread(target=self.connect,name="client_connect")
         localThread.start()
 
+        
     def connect(self):
        
         self.sock = socket(AF_INET, SOCK_STREAM)
@@ -35,13 +36,6 @@ class Client(Sock):
         self.connected = True
         self.receive()
 
- 
-
-    def output(self,mes):
-        print(mes)
-    
-
-
 
 if __name__ == "__main__":
     s = Client("127.0.0.1",50000)
@@ -49,7 +43,7 @@ if __name__ == "__main__":
     while True:
         inp = input("enter:")
         s.format_send(inp.encode())
-        #s.file_send(r"C:\Users\mariu\OneDrive - BG Perchtoldsdorf\Schule\helloworld\socktac\newfile2.jpg")
+      
         
 
 
