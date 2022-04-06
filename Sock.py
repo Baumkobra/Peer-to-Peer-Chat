@@ -1,4 +1,4 @@
-from pyclbr import Function
+
 from File import *
 from Message import *
 from Header import *
@@ -6,6 +6,7 @@ from threading import Thread
 from socket import socket,gethostbyname,gethostname,error
 from queue import SimpleQueue
 from logic import Game, Player,Board,Tile
+from encrypt import *
 
 def debug(txt):
     if DEBUG:
@@ -24,8 +25,11 @@ class Sock:
         self.name = b"unknown"
         self.running = True
         self.connected = False
+        self.connection_public_key = None
+        self.public_key, self.private_key = create_key()
+   
 
-    def configure(self, onmessage_callback:Function=print,onconnection_close:Function=None,onconnection_open:Function= None,onfile_receive:Function=None):
+    def configure(self, onmessage_callback=print,onconnection_close=None,onconnection_open= None,onfile_receive=None):
         self.onmessage_callback = onmessage_callback
         self.onconnection_close = onconnection_close
         self.onconnection_open = onconnection_open
@@ -34,6 +38,7 @@ class Sock:
 
     def send(self,message:bytes):
         #universell für client und server
+        if self.connection_public_key is not None: message = encrypt(self.connection_public_key, message)
         debug("creating header")
         header = get_header(message)
         debug("sending header")
@@ -49,6 +54,7 @@ class Sock:
         def do():
             for mes in format_file(file_path=file_path,user=self.name):
                 self.send(mes)
+            debug("file finished sending")
 
         localThread = Thread(target=do,name="filesend")
         localThread.start()
@@ -57,21 +63,30 @@ class Sock:
     def format_send(self,message_bytes, type_=TEXTID,user=b"unknown"):
         #universell für client und server
         if type(message_bytes) is not bytes: message_bytes = message_bytes.encode()
-            
+        if type(user) is not bytes: user = user.encode()
+       
+                 
         def do():
             meslist = format_message(message_bytes, type_=type_,user=user)
             for mes in meslist:
                 self.send(mes)
             
         localThread = Thread(target=do,name="format_send")
-        localThread.start()
+        localThread.start()    
 
+    def handshake(self):
+        self.format_send(self.public_key,type_=PUBLICKEYID,user="handshake")      
+        debug("sending public key")      
+     
 
     def receive(self):
         self.name = self.sock.getsockname()[0].__str__().encode()
+        #handshake to get the public key
+       
         #receiving the message and calling process_mes 
         def do():
             debuf_dict = {}
+            self.handshake()
             while self.running:
                 try:
                     header = self.sock.recv(HEADER)
@@ -80,6 +95,8 @@ class Sock:
                     if not self.running: return 
                     data = self.sock.recv(incoming_message_len)
                     debug(f"receiving {data}")
+                    if is_encrypted(data):
+                        data = decrypt(self.private_key, data)
                     mes = read_message(data)
                     debug(f"reading {mes}")
 
@@ -102,7 +119,7 @@ class Sock:
         """
         self.onmessage_callback is the function called when a Textmessage appears
         """
-        self.onmessage_callback : Function
+        self.onmessage_callback 
         def do():
             debuf_data = b"" 
             
@@ -127,6 +144,10 @@ class Sock:
                 debuf_data += message_data  
 
             if message_type == TEXTID: self.onmessage_callback(data=debuf_data.decode(),user=message_sender)
+        
+            elif message_type == PUBLICKEYID:
+                self.connection_public_key = debuf_data
+                debug(f"received public key {self.connection_public_key}")
 
             elif message_type == FILEID:
                 if len(debuf_data) == message_file_size:

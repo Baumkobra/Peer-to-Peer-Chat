@@ -31,7 +31,7 @@ class Server(Sock):
     def accept(self):
         debug(f"accepting on {self.host}:{self.port}")
         try:self.sock, self.addr = self.socket.accept()
-        except OSError: return False
+        except OSError: print("OSERROR");return False
         debug(f"new connection to{self.addr}")
         self.onconnection_open()
         self.connected = True
@@ -47,7 +47,7 @@ class Server(Sock):
 
 
 if __name__ == "__main__":
-    s = Server()
+    s = Server("127.0.0.1",50000)
 
     while True:
         inp = input("enter:")

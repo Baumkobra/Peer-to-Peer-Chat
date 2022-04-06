@@ -44,7 +44,8 @@ class Client(Sock):
 
 
 if __name__ == "__main__":
-    s = Client()
+    s = Client("127.0.0.1",50000)
+    s.connect()
     while True:
         inp = input("enter:")
         s.format_send(inp.encode())

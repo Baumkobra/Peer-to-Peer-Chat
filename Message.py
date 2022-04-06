@@ -5,18 +5,21 @@ from uuid import uuid4
 
 
 
-CHUNK = 1028
+
+CHUNK = 64
 TEXTID: bytes = b"/t"
 GAMEID : bytes = b"/g"
 INFOID : bytes = b"/i"
 FILEID : bytes = b"/f"
+PUBLICKEYID : bytes = b"/p"
 SEPERATOR: bytes = b"<-|->"
 STARTER: bytes = b"<#>"
 ENDER: bytes = b">#<"
-DEBUG = False
+DEBUG = True
 
 def debug(txt):
     if DEBUG:
+        print()
         print(txt)
 
 
@@ -47,6 +50,10 @@ def format_message(message_bytes, type_ : bytes,user: bytes = b"unkown",buffer:b
         messages.append(message)
     return messages
 
+
+def is_encrypted(message_bytes):
+    if (STARTER and SEPERATOR and ENDER in message_bytes): debug("is not encrypted");return False
+    debug("is encrypted");return True
 
 
 def buffer_message(message_bytes) -> dict[bytes]:

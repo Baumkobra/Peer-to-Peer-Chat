@@ -53,6 +53,7 @@ class Window(Frame):
     def get_username(self):    
         var = simpledialog.askstring("Username","Enter Username")
         if var is None: return
+        if var == "": return
         self.name = var.encode()
 
     def send_file(self):
@@ -63,6 +64,7 @@ class Window(Frame):
         if not self.has_socket: self.display(data="Establish a connection before sending a file\n",user="[INFO]");return
         if not self.is_connected: self.display(data="Establish a connection before sending a file\n",user="[INFO]");return
         self.sock.file_send(path)
+        self.display(data=f"sending file: {path}",user="[INFO]")
 
     def get_text_input(self):
         text = self.text_inp.get(1.0, END)
@@ -96,7 +98,6 @@ class Window(Frame):
 
         available_files = {}
        
-    
         def get():
             path = filedialog.askdirectory()
             if path == "": put_all_back();return
@@ -112,12 +113,10 @@ class Window(Frame):
                     self.file_queue.put(files[name])
         
         def put_all_back():
-            print("putallback")
             for file in files.values():
                 self.file_queue.put(file)
             top.destroy()
-
-        
+  
         top.protocol("WM_DELETE_WINDOW", put_all_back)
         for file in files.values():
             bvar = BooleanVar()
@@ -153,7 +152,6 @@ class Window(Frame):
         if not self.has_socket: self.display(data="You are not currently connected or hosting a connection\n",user="[INFO]"); return
         if not self.is_connected: self.display(data="You are not yet connected\n",user="[INFO]");return
         self.sock.format_send(text,user=self.name)
-
 
     def host(self):
         if self.has_socket: self.display(data="can't create a new socket, close the old one first\n",user="[INFO]"); return
