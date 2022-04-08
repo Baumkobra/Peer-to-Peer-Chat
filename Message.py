@@ -6,15 +6,18 @@ from uuid import uuid4
 
 
 
-CHUNK = 64
+CHUNK = 1000
 TEXTID: bytes = b"/t"
 GAMEID : bytes = b"/g"
 INFOID : bytes = b"/i"
 FILEID : bytes = b"/f"
 PUBLICKEYID : bytes = b"/p"
-SEPERATOR: bytes = b"<-|->"
-STARTER: bytes = b"<#>"
-ENDER: bytes = b">#<"
+AESKEYID : bytes = b"/a"
+SEPERATOR: bytes = b"||"
+STARTER: bytes = b"<<"
+ENDER: bytes = b">>"
+AES_RECEIVED : bytes = b"/ar"
+PUBLICKEY_RECEIVED : bytes = b"/pr"
 DEBUG = True
 
 def debug(txt):
