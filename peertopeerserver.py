@@ -6,7 +6,7 @@ from Header import *
 from Message import *
 from threading import Thread
 from Sock import Sock, debug
-from logic import Game, Player,Board,Tile
+
 HOST, PORT = "127.0.0.1", 50000
 
 debug(datetime.now().strftime("%H:%M:%S"))

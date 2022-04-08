@@ -6,19 +6,19 @@ from uuid import uuid4
 
 
 
-CHUNK = 1000
+CHUNK = 800
 TEXTID: bytes = b"/t"
 GAMEID : bytes = b"/g"
 INFOID : bytes = b"/i"
 FILEID : bytes = b"/f"
 PUBLICKEYID : bytes = b"/p"
 AESKEYID : bytes = b"/a"
-SEPERATOR: bytes = b"||"
+SEPERATOR: bytes = b"|-|"
 STARTER: bytes = b"<<"
 ENDER: bytes = b">>"
 AES_RECEIVED : bytes = b"/ar"
 PUBLICKEY_RECEIVED : bytes = b"/pr"
-DEBUG = True
+DEBUG = False	
 
 def debug(txt):
     if DEBUG:
@@ -29,7 +29,9 @@ def debug(txt):
 
 def read_message(message_bytes:bytes) -> dict[str:bytes]:
     message_split =  message_bytes.split(SEPERATOR,9)
-
+    if len(message_bytes.split(SEPERATOR)) > 10: print("seperator error")
+    print(message_split)
+    print()
     return {
         "id":message_split[1].decode(),
         "type":message_split[2],

@@ -5,7 +5,7 @@ from Header import *
 from threading import Thread
 from socket import socket,gethostbyname,gethostname,error
 from queue import SimpleQueue
-from logic import Game, Player,Board,Tile
+
 from encrypt import *
 
 def debug(txt):
@@ -143,7 +143,7 @@ class Sock:
                     data_encrypted = is_encrypted(data)
 
                     # if the message is encrypted using aes, decrypt it
-                    if data_encrypted and self.aes_handshake_complete:
+                    if self.aes_handshake_complete:
                         data = decrypt_aes(self.connection_aes_key,data)
                     
                     # if the message is encrypted using rsa, decrypt it
