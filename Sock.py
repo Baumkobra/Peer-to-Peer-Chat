@@ -17,7 +17,19 @@ class Sock:
     Peer-to-Peer Socket operations
     
     """
-    def __init__(self,host,port) -> None:
+    def __init__(self,host,port,onmessage_callback=print,onconnection_close=None,onconnection_open= None,onfile_receive=None) -> None:
+
+        # callback functions,called on special events
+        # when a new text message is received
+        self.onmessage_callback = onmessage_callback
+        # when the connection is closed
+        self.onconnection_close = onconnection_close
+        # when the connection is opened
+        self.onconnection_open = onconnection_open
+        # when a file was received
+        self.onfile_receive = onfile_receive
+
+
         self.host = gethostbyname(gethostname())
         self.port = port
         self.sock : socket
@@ -55,13 +67,6 @@ class Sock:
         #handshake is done
         self.handshake_complete = False
         
-   
-
-    def configure(self, onmessage_callback=print,onconnection_close=None,onconnection_open= None,onfile_receive=None):
-        self.onmessage_callback = onmessage_callback
-        self.onconnection_close = onconnection_close
-        self.onconnection_open = onconnection_open
-        self.onfile_receive = onfile_receive
 
 
     def send(self,message:bytes):
@@ -128,6 +133,7 @@ class Sock:
         #receiving the message and calling process_mes 
         def do():
             debuf_dict = {}
+            buffer_list_dict = {}
             self.handshake()
             while self.running:
                 try:
@@ -152,20 +158,34 @@ class Sock:
 
                     # if the message is not encrypted, pass
                     else: pass
-
+                    # de-formatting the data 
                     mes = read_message(data)
 
                     debug(f"reading {mes}")
 
                 except error as ex: self.close();debug("server error occured");return 
                 
-                if not mes["id"] in debuf_dict: 
+                # if the message id is unknown, 
+                if not mes["id"] in debuf_dict:
                     debuf_dict.update({mes["id"]:{}})
+                    buffer_list_dict.update({mes["id"]:{"amount":mes["amount_of_buffers"],"list":[i for i in range(1,mes["amount_of_buffers"]+1)]}})
+               
+                    
 
+                # adding the message to the according dict
                 debuf_dict[mes["id"]].update({mes["buffer"]:mes})
 
-                if is_last_buffer(mes["buffer"]):
+                # checking to see if the message is the last one
+                bufferdict = debuf_dict[mes["id"]]
+
+                if is_complete_message(bufferdict, buffer_list_dict[mes["id"]]["amount"],buffer_list_dict[mes["id"]]["list"]):
                     self.process_mes(debuf_dict[mes["id"]])
+                    
+                    del debuf_dict[mes["id"]]
+                    del buffer_list_dict[mes["id"]]
+
+              
+                        
                 
         localThread = Thread(target=do,name="receive")
         localThread.start()
@@ -182,8 +202,8 @@ class Sock:
             
             
             #sorting the dictionary keys
-            l = [buf.split(".")[0] for buf in meslist.keys()]
-            keys = [f"{i}.{len(l)}" for i in l]
+            keys = [buf for buf in meslist.keys()]
+            keys.sort()
 
             #putting the data together 
             for key in keys:
@@ -192,6 +212,7 @@ class Sock:
                 message_id = mes["id"]
                 message_type = mes["type"]
                 message_buffer = mes["buffer"]
+                message_amount_of_buffers = mes["amount_of_buffers"]
                 message_file_extension = mes["file_extension"]
                 message_file_size = mes["file_size"]
                 message_file_name = mes["file_name"]
@@ -200,6 +221,7 @@ class Sock:
 
                 debuf_data += message_data  
 
+            # if its a text message, output it
             if message_type == TEXTID: self.onmessage_callback(data=debuf_data.decode(),user=message_sender)
 
             # receiving the peer's public key, sending a PUBLICKE_RECEIVED message to confirm
@@ -225,7 +247,7 @@ class Sock:
                     debug("rsa handshake complete")
                     self.aes_handshake()
 
-            
+            # receiving the aeskey and confirming it
             elif message_type == AESKEYID and not self.self_received_connection_aes_key:
                 # saving the peer's aes key
                 self.connection_aes_key = debuf_data
@@ -247,12 +269,10 @@ class Sock:
                     self.aes_handshake_complete = True
                     debug("aes handshake complete")
                     
-
+            # if its a message, call output it
             elif message_type == FILEID:
-                
                 self.onfile_receive(data=debuf_data,file_extension=message_file_extension,file_name=message_file_name,file_size=message_file_size)
-                 #get_file(debuf_data,message_file_extension)
-          
+
 
         localThread = Thread(target=do,name="process_mes")
         localThread.start()

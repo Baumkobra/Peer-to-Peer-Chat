@@ -3,7 +3,8 @@ from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Cipher import AES
 from Message import debug
 import os
-# create a private key public key 
+
+# create a private key and public key 
 def create_rsa_keypair(key_size=2048):
     new_key = RSA.generate(key_size)
     public_key = new_key.publickey().exportKey("PEM")

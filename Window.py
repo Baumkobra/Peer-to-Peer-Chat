@@ -59,12 +59,12 @@ class Window(Frame):
     def send_file(self):
         path = filedialog.askopenfilename()
         if path == "": return
-        path = path.encode()
+        path = path
         
         if not self.has_socket: self.display(data="Establish a connection before sending a file\n",user="[INFO]");return
         if not self.is_connected: self.display(data="Establish a connection before sending a file\n",user="[INFO]");return
-        self.sock.file_send(path)
-        self.display(data=f"sending file: {path}",user="[INFO]")
+        self.sock.file_send(path.encode())
+        self.display(data=f"sending file: {path}\n",user="[INFO]")
 
     def get_text_input(self):
         text = self.text_inp.get(1.0, END)
@@ -155,30 +155,34 @@ class Window(Frame):
 
     def host(self):
         if self.has_socket: self.display(data="can't create a new socket, close the old one first\n",user="[INFO]"); return
+        def do():
+            self.sock = Server(port=50000,onmessage_callback=self.display,onconnection_close=self.on_connection_close,onconnection_open=self.on_connection_open,onfile_receive=self.on_file_receive)
+            self.display(data=f"attemting to host socket on {self.sock.host}:{self.sock.host}\n",user="[INFO]")
 
-        self.sock = Server(host="127.0.0.1",port=50000)
-        self.sock.configure(self.display,self.on_connection_close,self.on_connection_open,self.on_file_receive)
+            self.has_socket = True
 
-        self.has_socket = True
+            self.name = self.sock.name if self.name == b"you" else self.name
 
-        self.name = self.sock.name if self.name == b"you" else self.name
-
-        self.display(data=f"hosting chat on {self.sock.host}:{self.sock.port}\n",user="[INFO]")
+            self.display(data=f"hosting chat on {self.sock.host}:{self.sock.port}\n",user="[INFO]")
+        localThread = Thread(target=do,name="host setup")
+        localThread.start()
 
     
 
     def connect(self):
         if self.has_socket: self.display(data="can't a new socket, close the old one first\n",user="[INFO]"); return
         ip = simpledialog.askstring("IP Adress","Enter IP Adress").encode()
+        def do():
+            self.sock = Client(host=ip,port=50000,onmessage_callback=self.display,onconnection_close=self.on_connection_close,onconnection_open=self.on_connection_open,onfile_receive=self.on_file_receive)
+            self.display(data=f"attempting to connect to {self.sock.host}:{self.sock.port}\n",user="[INFO]")
+           
+            self.has_socket = True
+            self.name = self.sock.name if self.name == b"you" else self.name
+        
+            self.display(data=f"joining chat on {self.sock.host if type(self.sock.host) is str else self.sock.host.decode()}:{self.sock.port}\n",user="[INFO]")
 
-        self.sock = Client(host=ip,port=50000)
-        self.sock.configure(self.display,self.on_connection_close,self.on_connection_open,self.on_file_receive)
-
-        self.has_socket = True
-        self.name = self.sock.name if self.name == b"you" else self.name
-       
-        self.display(data=f"joining chat on {self.sock.host if type(self.sock.host) is str else self.sock.host.decode()}:{self.sock.port}\n",user="[INFO]")
-
+        localThread = Thread(target=do,name="connect setup")
+        localThread.start()
 
     def abort_connection(self):
         if not self.has_socket: return

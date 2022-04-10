@@ -1,7 +1,7 @@
 import os
 from sys import getsizeof
 from Message import *
-CHUNK = 4086
+
 
 def format_file(file_path,user:bytes = b"unknown"):
     if type(file_path) is bytes:
@@ -24,6 +24,9 @@ def get_file(data:bytes, file_extension, savepath = os.getcwd(),file_name="newfi
     with open(path, "wb") as file:
         file.write(data)
     return path
+
+
+#
     
         
 

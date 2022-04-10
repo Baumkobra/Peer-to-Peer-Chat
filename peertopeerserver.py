@@ -1,5 +1,5 @@
 import socket
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import socket, AF_INET, SOCK_STREAM,gethostname,gethostbyname
 from time import sleep
 from datetime import datetime
 from Header import * 
@@ -7,14 +7,20 @@ from Message import *
 from threading import Thread
 from Sock import Sock, debug
 
-HOST, PORT = "127.0.0.1", 50000
+hostname = gethostname()
+ip_address = gethostbyname(hostname)
+
+HOST, PORT = ip_address, 50000
 
 debug(datetime.now().strftime("%H:%M:%S"))
 
 
 class Server(Sock):
-    def __init__(self,host,port) -> None:
-        super().__init__(host,port)
+    def __init__(self,port,onmessage_callback=print,onconnection_close=None,onconnection_open= None,onfile_receive=None) -> None:
+        hostname = gethostname()
+        ip_address = gethostbyname(hostname)
+        host = ip_address
+        super().__init__(host,port,onmessage_callback=onmessage_callback,onconnection_close=onconnection_close,onconnection_open=onconnection_open,onfile_receive=onfile_receive)
         self.sock : socket
 
         localThread = Thread(target=self.listen,name="server_listen")
