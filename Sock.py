@@ -5,7 +5,7 @@ from Header import *
 from threading import Thread
 from socket import socket,gethostbyname,gethostname,error
 from queue import SimpleQueue
-
+from tempfile import TemporaryFile,TemporaryDirectory
 from encrypt import *
 
 def debug(txt):
@@ -64,8 +64,10 @@ class Sock:
         # the rsa handshake is done        
         self.aes_handshake_complete = False
 
-        #handshake is done
+        # handshake is done
         self.handshake_complete = False
+
+        
         
 
 
@@ -277,6 +279,17 @@ class Sock:
         localThread = Thread(target=do,name="process_mes")
         localThread.start()
     
+
+    def temp_file(self,file_extension:str,file_name:str,file_size:int):
+        def do():
+            tempfile = TemporaryFile(mode="wb",suffix=f".{file_extension}",prefix=f"{file_name}_")
+
+            while True:
+                pass
+
+        localThread = Thread(target=do,name="temp_file")
+        localThread.start()
+
 
     def close(self):
         self.running = False

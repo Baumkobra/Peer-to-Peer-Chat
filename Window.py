@@ -157,7 +157,7 @@ class Window(Frame):
         if self.has_socket: self.display(data="can't create a new socket, close the old one first\n",user="[INFO]"); return
         def do():
             self.sock = Server(port=50000,onmessage_callback=self.display,onconnection_close=self.on_connection_close,onconnection_open=self.on_connection_open,onfile_receive=self.on_file_receive)
-            self.display(data=f"attemting to host socket on {self.sock.host}:{self.sock.host}\n",user="[INFO]")
+            self.display(data=f"attemting to host socket on {self.sock.host}:{self.sock.port}\n",user="[INFO]")
 
             self.has_socket = True
 
@@ -174,7 +174,7 @@ class Window(Frame):
         ip = simpledialog.askstring("IP Adress","Enter IP Adress").encode()
         def do():
             self.sock = Client(host=ip,port=50000,onmessage_callback=self.display,onconnection_close=self.on_connection_close,onconnection_open=self.on_connection_open,onfile_receive=self.on_file_receive)
-            self.display(data=f"attempting to connect to {self.sock.host}:{self.sock.port}\n",user="[INFO]")
+            self.display(data=f"attempting to connect to {self.sock.host if type(self.sock.host) is str else self.sock.host.decode()}:{self.sock.port}\n",user="[INFO]")
            
             self.has_socket = True
             self.name = self.sock.name if self.name == b"you" else self.name
