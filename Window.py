@@ -134,16 +134,22 @@ class Window(Frame):
 
         def get():
             path = filedialog.askdirectory()
+            debug(path)
             if path == "":
                 put_all_back()
+                debug("no path selected")
                 return
             top.destroy()
-            if not True in available_files.values():
+
+            if not True in [var.get() for var in available_files.values()]:
                 put_all_back()
+                debug("no files selected")
                 return
 
             for name, var in available_files.items():
+
                 if var:
+
                     file = files[name]
                     info = get_file(
                         data=file["data"],

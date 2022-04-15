@@ -3,14 +3,14 @@ from typing import Union
 from uuid import uuid4
 
 
-CHUNK = 800
+CHUNK = 32 * 1024
 TEXTID: bytes = b"/t"
 GAMEID: bytes = b"/g"
 INFOID: bytes = b"/i"
 FILEID: bytes = b"/f"
 PUBLICKEYID: bytes = b"/p"
 AESKEYID: bytes = b"/a"
-SEPERATOR: bytes = b"|0&'-'&0|"
+SEPERATOR: bytes = b"|0&'sep'&0|"
 STARTER: bytes = b"<<"
 ENDER: bytes = b">>"
 AES_RECEIVED: bytes = b"/ar"
@@ -42,6 +42,44 @@ def read_message(message_bytes: bytes) -> dict[str:bytes]:
         "data": message_split[8],
         "user": message_split[9].decode(),
     }
+
+
+def single_format_message(
+    message_bytes,
+    id: bytes,
+    type_: bytes,
+    user: bytes = b"unkown",
+    buffer: bytes = b" ",
+    amount_of_buffers: bytes = b" ",
+    file_extension: bytes = b" ",
+    file_name: bytes = b" ",
+    file_size: bytes = b" ",
+) -> list[bytes]:
+
+    message: bytes = (
+        STARTER
+        + SEPERATOR
+        + id
+        + SEPERATOR
+        + type_
+        + SEPERATOR
+        + buffer
+        + SEPERATOR
+        + amount_of_buffers
+        + SEPERATOR
+        + file_extension
+        + SEPERATOR
+        + file_size
+        + SEPERATOR
+        + file_name
+        + SEPERATOR
+        + message_bytes
+        + SEPERATOR
+        + user
+        + SEPERATOR
+        + ENDER
+    )
+    return message
 
 
 def format_message(

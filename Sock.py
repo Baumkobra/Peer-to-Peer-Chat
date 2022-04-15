@@ -42,7 +42,6 @@ class Sock:
         self.host = gethostbyname(gethostname())
         self.port = port
         self.sock: socket
-        self.queue = SimpleQueue()
         self.name = b"unknown"
         self.running = True
         self.connected = False
@@ -99,8 +98,7 @@ class Sock:
     def file_send(self, file_path):
         # sending a file
         def do():
-            for mes in format_file(file_path=file_path, user=self.name):
-                self.send(mes)
+            smart_file_send(file_path, func=self.send)
             debug("file finished sending")
 
         localThread = Thread(target=do, name="filesend")
